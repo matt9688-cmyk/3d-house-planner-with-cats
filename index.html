@@ -18,6 +18,9 @@
       -webkit-user-select: none;
       overflow: hidden;
     }
+    #canvasContainer { touch-action: none; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     ::-webkit-scrollbar { width: 5px; height: 5px; }
     ::-webkit-scrollbar-track { background: #0f172a; }
     ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
@@ -45,7 +48,7 @@
   <!-- ========================================================================= -->
   <!-- Top Navigation Header -->
   <!-- ========================================================================= -->
-  <header class="h-13 py-1.5 bg-slate-900/95 border-b border-slate-800 flex items-center justify-between px-2.5 z-20 shrink-0 backdrop-blur-md gap-1.5">
+  <header class="h-13 py-1.5 bg-slate-900/95 border-b border-slate-800 flex items-center justify-between px-2.5 z-20 shrink-0 backdrop-blur-md gap-1.5 overflow-x-auto no-scrollbar">
     <div class="flex items-center space-x-2 min-w-0">
       <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-amber-600 to-orange-500 flex items-center justify-center shadow-lg shadow-orange-500/20 text-white font-bold text-base shrink-0">
         <i class="fa-solid fa-house-chimney"></i>
@@ -106,7 +109,7 @@
           <span>範本</span>
           <i class="fa-solid fa-chevron-down text-[9px]"></i>
         </button>
-        <div id="presetsDropdown" class="hidden absolute right-0 mt-1.5 w-72 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl p-1.5 space-y-1 z-50">
+        <div id="presetsDropdown" class="hidden fixed lg:absolute right-2 lg:right-0 top-12 lg:top-auto lg:mt-1.5 w-72 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl p-1.5 space-y-1 z-50">
           <div class="text-[10px] font-bold text-slate-400 px-2 py-1">一鍵載入 40坪 預設格局（牆體家具皆可微調）</div>
           <button data-preset="preset-40ping-loft" class="preset-btn w-full text-left px-2.5 py-1.5 rounded-lg text-xs hover:bg-slate-800 text-slate-200 flex flex-col">
             <span class="font-semibold text-orange-400">🏡 40坪和室樓中樓精裝宅（推薦預設）</span>
@@ -173,8 +176,15 @@
   <!-- ========================================================================= -->
   <div class="flex-1 flex overflow-hidden relative">
 
-    <!-- LEFT SIDEBAR: Catalog -->
-    <aside class="w-64 xl:w-72 bg-slate-900 border-r border-slate-800 flex flex-col shrink-0 z-10 custom-shadow">
+    <!-- MOBILE BACKDROP FOR DRAWERS -->
+    <div id="mobileDrawerBackdrop" class="hidden fixed inset-0 bg-black/60 backdrop-blur-xs z-30 lg:hidden"></div>
+
+    <!-- LEFT SIDEBAR: Catalog (Slide-over Drawer on Mobile, Fixed Column on Desktop) -->
+    <aside id="leftSidebar" class="fixed lg:static inset-y-0 left-0 z-40 w-72 lg:w-64 xl:w-72 bg-slate-900 border-r border-slate-800 flex flex-col shrink-0 custom-shadow transform -translate-x-full lg:translate-x-0 transition-transform duration-200">
+      <div class="lg:hidden flex items-center justify-between px-3 py-2 bg-slate-950 border-b border-slate-800 shrink-0">
+        <span class="text-xs font-bold text-orange-400 flex items-center gap-1.5"><i class="fa-solid fa-boxes-stacked"></i> 家具與建材目錄</span>
+        <button id="btnCloseLeftDrawer" class="px-2 py-1 rounded bg-slate-800 text-slate-300 text-xs hover:bg-slate-700"><i class="fa-solid fa-xmark"></i> 關閉</button>
+      </div>
       <div class="p-3 border-b border-slate-800 space-y-2.5 bg-slate-900/90">
         <div class="flex gap-1.5">
           <button id="btnQuickDrawWall" class="flex-1 py-1.5 rounded-lg bg-amber-600/30 hover:bg-amber-600/40 text-amber-300 border border-amber-500/40 text-xs font-semibold flex items-center justify-center gap-1 transition">
@@ -227,7 +237,7 @@
     </aside>
 
     <!-- CENTER: Canvas Viewport -->
-    <main class="flex-1 relative flex flex-col overflow-hidden bg-slate-950">
+    <main class="flex-1 min-w-0 relative flex flex-col overflow-hidden bg-slate-950">
       <div id="canvasContainer" class="w-full h-full relative cursor-default">
         <!-- 2D Blueprint Annotation Overlay Canvas -->
         <canvas id="overlay2DCanvas" class="absolute inset-0 w-full h-full pointer-events-none z-10"></canvas>
@@ -282,18 +292,55 @@
           </button>
         </div>
 
-        <!-- First Person Walkthrough HUD -->
-        <div id="fpvHud" class="hidden absolute bottom-6 left-1/2 -translate-x-1/2 bg-slate-900/95 backdrop-blur border border-orange-500/40 px-4 py-2 rounded-2xl shadow-2xl flex items-center gap-4 text-xs text-slate-200 z-20">
-          <div class="flex items-center gap-1.5">
+        <!-- Mobile Quick Actions Bar (Shown when entity selected, useful on touch devices) -->
+        <div id="mobileQuickActions" class="hidden lg:hidden absolute bottom-14 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1.5 bg-slate-900/95 backdrop-blur border border-orange-500/50 px-2.5 py-1.5 rounded-2xl shadow-2xl text-xs whitespace-nowrap">
+          <button id="btnMobRotate" class="px-2.5 py-1 rounded-lg bg-slate-800 active:bg-orange-600 text-amber-300 font-semibold flex items-center gap-1">
+            <i class="fa-solid fa-rotate-right"></i> 旋轉
+          </button>
+          <button id="btnMobDuplicate" class="px-2.5 py-1 rounded-lg bg-slate-800 active:bg-slate-700 text-slate-200 font-semibold flex items-center gap-1">
+            <i class="fa-solid fa-copy"></i> 複製
+          </button>
+          <button id="btnMobEditProps" class="px-2.5 py-1 rounded-lg bg-orange-600/80 active:bg-orange-500 text-white font-semibold flex items-center gap-1">
+            <i class="fa-solid fa-sliders"></i> 尺寸/調色
+          </button>
+          <button id="btnMobDelete" class="px-2.5 py-1 rounded-lg bg-red-950/80 active:bg-red-800 text-red-300 font-semibold flex items-center gap-1">
+            <i class="fa-solid fa-trash-can"></i> 刪除
+          </button>
+        </div>
+
+        <!-- Mobile Bottom Dock (<1024px) -->
+        <div id="mobileBottomDock" class="lg:hidden absolute bottom-2.5 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1.5 bg-slate-900/95 backdrop-blur border border-slate-700 px-2.5 py-1.5 rounded-2xl shadow-2xl text-xs whitespace-nowrap">
+          <button id="btnMobileOpenCatalog" class="px-3 py-1.5 rounded-xl bg-orange-600/25 border border-orange-500/40 text-orange-300 font-semibold flex items-center gap-1.5 active:scale-95 transition">
+            <i class="fa-solid fa-boxes-stacked"></i> 家具庫
+          </button>
+          <button id="btnMobileOpenInspector" class="px-3 py-1.5 rounded-xl bg-cyan-600/20 border border-cyan-500/40 text-cyan-300 font-semibold flex items-center gap-1.5 active:scale-95 transition">
+            <i class="fa-solid fa-sliders"></i> 屬性/地坪
+          </button>
+          <button id="btnMobileOpenCats" class="px-3 py-1.5 rounded-xl bg-amber-600/20 border border-amber-500/40 text-amber-300 font-semibold flex items-center gap-1.5 active:scale-95 transition">
+            <i class="fa-solid fa-cat"></i> 貓咪
+          </button>
+        </div>
+
+        <!-- First Person Walkthrough HUD (with Mobile Touch D-Pad) -->
+        <div id="fpvHud" class="hidden absolute bottom-14 lg:bottom-6 left-1/2 -translate-x-1/2 bg-slate-900/95 backdrop-blur border border-orange-500/40 px-3 py-2 rounded-2xl shadow-2xl flex flex-wrap items-center justify-center gap-2 lg:gap-4 text-xs text-slate-200 z-20 max-w-[95vw]">
+          <div class="hidden lg:flex items-center gap-1.5">
             <span class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 font-mono text-orange-400">W A S D</span>
             <span>走動</span>
           </div>
-          <div class="flex items-center gap-1.5">
+          <div class="hidden lg:flex items-center gap-1.5">
             <span class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 font-mono text-cyan-400">Q / E</span>
             <span>升降視高</span>
           </div>
-          <div class="flex items-center gap-1.5">
-            <span class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 font-mono text-emerald-400">左鍵拖曳</span>
+          <div id="fpvTouchControls" class="flex lg:hidden items-center gap-1">
+            <button data-fpvkey="w" class="fpv-touch-btn px-2.5 py-1.5 rounded-lg bg-slate-800 active:bg-orange-600 text-white font-bold">↑</button>
+            <button data-fpvkey="s" class="fpv-touch-btn px-2.5 py-1.5 rounded-lg bg-slate-800 active:bg-orange-600 text-white font-bold">↓</button>
+            <button data-fpvkey="a" class="fpv-touch-btn px-2.5 py-1.5 rounded-lg bg-slate-800 active:bg-orange-600 text-white font-bold">←</button>
+            <button data-fpvkey="d" class="fpv-touch-btn px-2.5 py-1.5 rounded-lg bg-slate-800 active:bg-orange-600 text-white font-bold">→</button>
+            <button data-fpvkey="e" class="fpv-touch-btn px-2 py-1.5 rounded-lg bg-slate-800 active:bg-cyan-600 text-cyan-300 font-semibold">升</button>
+            <button data-fpvkey="q" class="fpv-touch-btn px-2 py-1.5 rounded-lg bg-slate-800 active:bg-cyan-600 text-cyan-300 font-semibold">降</button>
+          </div>
+          <div class="hidden sm:flex items-center gap-1.5">
+            <span class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 font-mono text-emerald-400">單指/左鍵拖曳</span>
             <span>環顧視角</span>
           </div>
           <button id="btnFPVGround" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px]">1F 視高 (1.6m)</button>
@@ -304,8 +351,8 @@
         </div>
       </div>
 
-      <!-- Bottom Status Bar -->
-      <footer class="h-8 bg-slate-900 border-t border-slate-800 flex items-center justify-between px-3 text-[11px] text-slate-400 shrink-0 gap-2">
+      <!-- Bottom Status Bar (Desktop Only) -->
+      <footer class="hidden lg:flex h-8 bg-slate-900 border-t border-slate-800 items-center justify-between px-3 text-[11px] text-slate-400 shrink-0 gap-2">
         <div class="flex items-center gap-2.5 overflow-hidden whitespace-nowrap">
           <span class="shrink-0"><kbd class="px-1 py-0.5 bg-slate-800 border border-slate-700 rounded text-[10px] text-slate-300">A/B端點</kbd> 單邊伸縮</span>
           <span class="shrink-0"><kbd class="px-1 py-0.5 bg-slate-800 border border-slate-700 rounded text-[10px] text-slate-300">方向鍵</kbd> 微調</span>
@@ -319,8 +366,12 @@
       </footer>
     </main>
 
-    <!-- RIGHT SIDEBAR: Multi-Inspector -->
-    <aside class="w-72 xl:w-80 bg-slate-900 border-l border-slate-800 flex flex-col shrink-0 z-10 custom-shadow overflow-y-auto">
+    <!-- RIGHT SIDEBAR: Multi-Inspector (Slide-over Drawer on Mobile, Fixed Column on Desktop) -->
+    <aside id="rightSidebar" class="fixed lg:static inset-y-0 right-0 z-40 w-80 lg:w-72 xl:w-80 bg-slate-900 border-l border-slate-800 flex flex-col shrink-0 custom-shadow overflow-y-auto transform translate-x-full lg:translate-x-0 transition-transform duration-200">
+      <div class="lg:hidden sticky top-0 z-10 flex items-center justify-between px-3 py-2 bg-slate-950 border-b border-slate-800 shrink-0">
+        <span class="text-xs font-bold text-cyan-400 flex items-center gap-1.5"><i class="fa-solid fa-sliders"></i> 屬性與設定面板</span>
+        <button id="btnCloseRightDrawer" class="px-2 py-1 rounded bg-slate-800 text-slate-300 text-xs hover:bg-slate-700"><i class="fa-solid fa-xmark"></i> 關閉</button>
+      </div>
 
       <!-- INSPECTOR 1: Wall Inspector -->
       <div id="inspectorWall" class="hidden p-4 border-b border-slate-800 space-y-3 bg-slate-900/95">
@@ -3423,6 +3474,8 @@
       const emptyNotice = document.getElementById('inspectorEmptyState');
 
       [inspWall, inspRoom, inspFurn].forEach(p => p.classList.add('hidden'));
+      const mobActions = document.getElementById('mobileQuickActions');
+      if (mobActions) mobActions.classList.toggle('hidden', !entity);
 
       if (!entity) {
         inspFurnWrap.classList.remove('hidden');
@@ -3964,8 +4017,8 @@
     document.getElementById('toolModeSelect').addEventListener('click', () => setToolMode('select'));
     document.getElementById('toolModeDrawWall').addEventListener('click', () => setToolMode('drawWall'));
     document.getElementById('toolModeAddRoom').addEventListener('click', () => setToolMode('addRoom'));
-    document.getElementById('btnQuickDrawWall').addEventListener('click', () => setToolMode('drawWall'));
-    document.getElementById('btnQuickAddRoom').addEventListener('click', () => setToolMode('addRoom'));
+    document.getElementById('btnQuickDrawWall').addEventListener('click', () => { setToolMode('drawWall'); if (window.innerWidth < 1024) openMobileDrawer(null); });
+    document.getElementById('btnQuickAddRoom').addEventListener('click', () => { setToolMode('addRoom'); if (window.innerWidth < 1024) openMobileDrawer(null); });
     document.getElementById('btnFinishDrawWall').addEventListener('click', () => {
       appState.drawingWallStart = null;
       if (appState.previewWallMesh) { helperGroup.remove(appState.previewWallMesh); appState.previewWallMesh = null; }
@@ -4550,6 +4603,7 @@
             selectEntity({ type: 'furniture', data: newObj });
             showToast(`已放置「${item.name}」！右側可選多種尺寸規格與調色。`);
           }
+          if (window.innerWidth < 1024) openMobileDrawer(null);
           pushHistory();
         });
 
@@ -5109,7 +5163,8 @@
 
     document.getElementById('btnCatPanel').addEventListener('click', () => {
       const panel = document.getElementById('inspectorCat');
-      const willOpen = panel.classList.contains('hidden');
+      const isMobile = window.innerWidth < 1024;
+      const willOpen = isMobile ? true : panel.classList.contains('hidden');
       panel.classList.toggle('hidden', !willOpen);
       if (willOpen) {
         if (!appState.catsActive) {
@@ -5118,6 +5173,7 @@
           initCats();
         }
         syncCatInspectorUI();
+        if (isMobile) openMobileDrawer('right');
       }
       updateCatSelectionRings();
     });
@@ -5353,7 +5409,12 @@
       '1F 車庫停車格': 'Garage Parking Spot', '萬界巡狩靈光戰車 (3D Car)': '3D Concept Car',
       '庭院休閒戶外桌椅': 'Patio Table Set', '迎賓落塵鞋櫃': 'Entry Shoe Cabinet', '大型天堂鳥盆栽': 'Indoor Plant Pot',
       '五層通天豪華貓跳台': '5-Tier Cat Tree', '雲朵舒壓雙貓窩': 'Cloud Cat Bed',
-      '自動餵食與湧泉水機': 'Auto Cat Feeder', '除臭密閉貓砂盆': 'Enclosed Litter Box'
+      '自動餵食與湧泉水機': 'Auto Cat Feeder', '除臭密閉貓砂盆': 'Enclosed Litter Box',
+      // Mobile RWD Controls
+      '家具與建材目錄': 'Furniture & Catalog', '屬性與設定面板': 'Inspector & Settings', '關閉': 'Close',
+      '家具庫': 'Catalog', '屬性/地坪': 'Properties', '貓咪': 'Cats',
+      '旋轉': 'Rotate', '複製': 'Duplicate', '尺寸/調色': 'Resize/Color', '刪除': 'Delete',
+      '升': 'Up', '降': 'Down', '單指/左鍵拖曳': 'Touch/Drag'
     };
 
     const _origTextMap = new WeakMap();
@@ -5435,6 +5496,65 @@
       clearTimeout(window.__toastTimeout);
       window.__toastTimeout = setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 2700);
     }
+
+    // =========================================================================
+    // 16D. Mobile / Tablet RWD Drawer & Touch Quick-Action Controls
+    // =========================================================================
+    function openMobileDrawer(side) {
+      const leftEl = document.getElementById('leftSidebar');
+      const rightEl = document.getElementById('rightSidebar');
+      const backdrop = document.getElementById('mobileDrawerBackdrop');
+      if (!leftEl || !rightEl || !backdrop) return;
+
+      leftEl.classList.toggle('-translate-x-full', side !== 'left');
+      rightEl.classList.toggle('translate-x-full', side !== 'right');
+      backdrop.classList.toggle('hidden', side !== 'left' && side !== 'right');
+    }
+
+    document.getElementById('btnMobileOpenCatalog').addEventListener('click', () => openMobileDrawer('left'));
+    document.getElementById('btnMobileOpenInspector').addEventListener('click', () => openMobileDrawer('right'));
+    document.getElementById('btnMobileOpenCats').addEventListener('click', () => {
+      document.getElementById('inspectorCat').classList.remove('hidden');
+      if (!appState.catsActive) {
+        appState.catsActive = true;
+        syncCatToggleButton();
+        initCats();
+      }
+      syncCatInspectorUI();
+      updateCatSelectionRings();
+      openMobileDrawer('right');
+    });
+    document.getElementById('btnCloseLeftDrawer').addEventListener('click', () => openMobileDrawer(null));
+    document.getElementById('btnCloseRightDrawer').addEventListener('click', () => openMobileDrawer(null));
+    document.getElementById('mobileDrawerBackdrop').addEventListener('click', () => openMobileDrawer(null));
+
+    document.getElementById('btnMobRotate').addEventListener('click', () => {
+      if (!appState.selectedEntity) return;
+      if (appState.selectedEntity.type === 'furniture') rotateFurnitureBy(45);
+      else if (appState.selectedEntity.type === 'wall') setWallRot(appState.selectedEntity.data.rot + 45);
+    });
+    document.getElementById('btnMobDuplicate').addEventListener('click', () => {
+      if (!appState.selectedEntity) return;
+      if (appState.selectedEntity.type === 'furniture') document.getElementById('btnDuplicateItem').click();
+      else if (appState.selectedEntity.type === 'wall') document.getElementById('btnDuplicateWall').click();
+      else if (appState.selectedEntity.type === 'room') document.getElementById('btnDuplicateRoom').click();
+    });
+    document.getElementById('btnMobDelete').addEventListener('click', () => {
+      if (!appState.selectedEntity) return;
+      if (appState.selectedEntity.type === 'furniture') document.getElementById('btnDeleteItem').click();
+      else if (appState.selectedEntity.type === 'wall') document.getElementById('btnDeleteWall').click();
+      else if (appState.selectedEntity.type === 'room') document.getElementById('btnDeleteRoom').click();
+    });
+    document.getElementById('btnMobEditProps').addEventListener('click', () => openMobileDrawer('right'));
+
+    document.querySelectorAll('.fpv-touch-btn').forEach(btn => {
+      const k = btn.getAttribute('data-fpvkey');
+      const setKey = (v) => { keysPressed[k] = v; };
+      btn.addEventListener('pointerdown', (e) => { e.preventDefault(); setKey(true); });
+      btn.addEventListener('pointerup', () => setKey(false));
+      btn.addEventListener('pointercancel', () => setKey(false));
+      btn.addEventListener('pointerleave', () => setKey(false));
+    });
 
     // =========================================================================
     // 17. FPV Keyboard Movement, Animation Loop & Bootstrap
