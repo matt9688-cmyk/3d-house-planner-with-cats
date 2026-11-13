@@ -1,8 +1,28 @@
-# 🏡 1F 房屋格局與家具自由擺放設計家 (1F Home Layout & Furniture Designer) 操作手冊
+# 🏡 1F 房屋格局與家具自由擺放設計家 (1F Home Layout & Furniture Designer)
 
-> **專案版本**：`v3.1 40坪基地・寫實3D貓咪(骨骼外觀自訂/A*跨房與爬樓中樓)・像素積木轉換・和室樓中樓・電捲門軌道門版`  
-> **線上主程式**：[`index.html`](./index.html)（單檔免安裝，支援 GitHub Pages 直接開放連線）  
-> **技術核心**：Three.js (r128) + Tailwind CSS + WebGL 3D + 2D 藍圖標註圖層 + InstancedMesh 體素積木引擎 + 2.5D A\* 尋路系統
+> **Version**: `v3.1` — 40-Ping Layout · Realistic 3D Cats (Skeleton/Coat Customizer & 2.5D A\* Pathfinding) · Voxel-Brick Conversion · Tatami/Loft Mezzanine · Rolling/Sliding Doors  
+> **Live App Entry**: [`index.html`](./index.html) (Zero-install single-file HTML, ready for GitHub Pages)  
+> **Tech Stack**: Three.js (r128) + Tailwind CSS + WebGL 3D + 2D Blueprint Overlay + `InstancedMesh` Voxel Engine + 2.5D A\* Navigation  
+> **Language**: [English Overview](#english-overview) ｜ [繁體中文操作手冊](#一v30-重點更新與特色)
+
+---
+
+## English Overview
+
+### Key Features (`v3.1`)
+- **40-Ping (`132.3 m²`) Ground & Flexible Aspect Presets**: Switch between Square (`11.5m × 11.5m`), Wide (`13.25m × 10.0m`), Townhouse (`16.5m × 8.0m`), or enter custom `W × D` dimensions.
+- **Single-End Anchored Wall Stretching**: Drag the Cyan (`A`) or Emerald (`B`) endpoint handle to resize walls without shifting the opposite anchor; supports endpoint snapping and <kbd>Shift</kbd> free-angle adjustment.
+- **53+ Furniture Items with Multi-Size Presets & Dual-Color Materials**: Customize `W / D / H`, dual colors, and procedural textures (Marble, Wood, Fabric, Matte, Metal, Tatami).
+- **Japanese Washitsu, Mezzanine Loft & Rolling/Sliding Doors**: Build elevated tatami rooms, wooden mezzanines with single-sided/storage stairs, electric rolling shutters, and shoji/barn track doors with adjustable open ratios.
+- **🧱 One-Click Pixel / Voxel Brick Conversion**: Transform the entire house into LEGO-style bricks with top studs via `THREE.InstancedMesh` (`0.18m` / `0.25m` / `0.35m` resolution) and export voxelized `.obj` models.
+- **🐱 Realistic Articulated 3D Cats & Customizer**:
+  - Smooth spline-lofted torso, 3-segment articulated limbs, blinking slit-pupil eyes (with heterochromia), procedural coat patterns (`bicolor`, `tabby`, `calico`, `solid`, `siamese`), and 8 skeleton/proportion sliders (including **70% lightning-kink tail** & **100% straight tail**).
+  - **2.5D A\* Cross-Room & Stair/Mezzanine AI**: Cats navigate through opened doors, avoid solid furniture, hop onto tatami/sofas, climb wooden stairs up to the mezzanine loft (`上樓`), and chase the **🔴 Laser Pointer** across rooms.
+- **Save / Load & Export**: Auto-save to `localStorage`, export/import `.json` (`v3.1`, backward-compatible with `v2.0`/`v3.0`), 2D blueprint `.png`, and 3D `.obj`.
+
+### Quick Controls
+- **2D / 3D / FPV Views**: Switch anytime from the top bar (<kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> + <kbd>Q</kbd>/<kbd>E</kbd> in FPV).
+- **Edit**: <kbd>R</kbd> Rotate 45° · <kbd>D</kbd> Duplicate · <kbd>Delete</kbd> Remove · <kbd>Ctrl</kbd>+<kbd>Z</kbd>/<kbd>Y</kbd> Undo/Redo · Arrow keys nudge (`0.25m` / <kbd>Shift</kbd> `0.05m`).
 
 ---
 
